@@ -3,9 +3,9 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
-# ----------------------------
+
 # CONFIGURATION
-# ----------------------------
+-
 
 st.set_page_config(
     page_title="Base française des sites agrivoltaïques",
@@ -14,15 +14,12 @@ st.set_page_config(
 
 st.title(" Base française des sites agrivoltaïques")
 
-# ----------------------------
-# LECTURE DES DONNÉES
-# ----------------------------
+
+
 
 df = pd.read_excel("base_geolocalisee.xlsx")
 
-# ----------------------------
-# STATISTIQUES
-# ----------------------------
+
 
 col1, col2, col3 = st.columns(3)
 
@@ -48,9 +45,7 @@ with col3:
 
 st.divider()
 
-# ----------------------------
-# FILTRES
-# ----------------------------
+
 
 st.sidebar.header("Filtres")
 
@@ -81,9 +76,7 @@ controverse = st.sidebar.selectbox(
     ["Toutes", "Oui", "Non"]
 )
 
-# ----------------------------
-# APPLICATION DES FILTRES
-# ----------------------------
+
 
 df_filtre = df.copy()
 
@@ -114,9 +107,7 @@ elif controverse == "Non":
         df_filtre["Controverse ?"] == 0
     ]
 
-# ----------------------------
-# CARTE
-# ----------------------------
+
 
 carte = folium.Map(
     location=[46.5, 2.5],
@@ -160,9 +151,7 @@ st_folium(
     height=700
 )
 
-# ----------------------------
-# TABLEAU DES DONNÉES
-# ----------------------------
+
 
 st.subheader("Données filtrées")
 
