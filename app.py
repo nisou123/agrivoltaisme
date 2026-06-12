@@ -5,7 +5,7 @@ from streamlit_folium import st_folium
 
 
 # CONFIGURATION
--
+
 
 st.set_page_config(
     page_title="Base française des sites agrivoltaïques",
