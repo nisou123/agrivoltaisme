@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import folium
+from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 
 # ----------------------------
@@ -51,29 +52,50 @@ with col3:
 st.divider()
 
 # ----------------------------
+# OUTILS POUR LES CHAMPS MULTI-VALEURS
+# ----------------------------
+# Certaines cellules contiennent plusieurs valeurs séparées par une virgule
+# (ex: un site qui s'étend sur plusieurs communes : "Channay, Nicey").
+# Ces fonctions permettent de proposer chaque valeur individuellement dans
+# les filtres, et de faire matcher un site dès qu'UNE de ses valeurs
+# correspond au filtre choisi.
+
+def valeurs_eclatees(serie):
+    """Renvoie la liste triée des valeurs uniques, en éclatant les cellules
+    contenant plusieurs valeurs séparées par des virgules."""
+    valeurs = set()
+    for cellule in serie.dropna().astype(str):
+        for item in cellule.split(","):
+            item = item.strip()
+            if item:
+                valeurs.add(item)
+    return sorted(valeurs)
+
+
+def contient_valeur(cellule, valeur_cherchee):
+    """Vérifie si valeur_cherchee fait partie des valeurs d'une cellule
+    (potentiellement multi-valeurs séparées par des virgules)."""
+    if pd.isna(cellule):
+        return False
+    parties = [p.strip() for p in str(cellule).split(",")]
+    return valeur_cherchee in parties
+
+# ----------------------------
 # FILTRES
 # ----------------------------
 
 st.sidebar.header("Filtres")
 
-departements = ["Tous"] + sorted(
-    df["Département"].dropna().astype(str).unique().tolist()
-)
+departements = ["Tous"] + valeurs_eclatees(df["Département"])
 departement = st.sidebar.selectbox("Département", departements)
 
-communes = ["Toutes"] + sorted(
-    df["Commune"].dropna().astype(str).unique().tolist()
-)
+communes = ["Toutes"] + valeurs_eclatees(df["Commune"])
 commune = st.sidebar.selectbox("Commune", communes)
 
-technologies = ["Toutes"] + sorted(
-    df["Technologie agrivoltaïque"].dropna().astype(str).unique().tolist()
-)
+technologies = ["Toutes"] + valeurs_eclatees(df["Technologie agrivoltaïque"])
 technologie = st.sidebar.selectbox("Technologie", technologies)
 
-developpeurs = ["Tous"] + sorted(
-    df["Installateur"].dropna().astype(str).unique().tolist()
-)
+developpeurs = ["Tous"] + valeurs_eclatees(df["Installateur"])
 developpeur = st.sidebar.selectbox("Développeur", developpeurs)
 
 controverse = st.sidebar.selectbox("Controverse", ["Toutes", "Oui", "Non"])
@@ -85,18 +107,26 @@ controverse = st.sidebar.selectbox("Controverse", ["Toutes", "Oui", "Non"])
 df_filtre = df.copy()
 
 if departement != "Tous":
-    df_filtre = df_filtre[df_filtre["Département"].astype(str) == departement]
+    df_filtre = df_filtre[
+        df_filtre["Département"].apply(lambda x: contient_valeur(x, departement))
+    ]
 
 if commune != "Toutes":
-    df_filtre = df_filtre[df_filtre["Commune"].astype(str) == commune]
+    df_filtre = df_filtre[
+        df_filtre["Commune"].apply(lambda x: contient_valeur(x, commune))
+    ]
 
 if technologie != "Toutes":
     df_filtre = df_filtre[
-        df_filtre["Technologie agrivoltaïque"].astype(str) == technologie
+        df_filtre["Technologie agrivoltaïque"].apply(
+            lambda x: contient_valeur(x, technologie)
+        )
     ]
 
 if developpeur != "Tous":
-    df_filtre = df_filtre[df_filtre["Installateur"].astype(str) == developpeur]
+    df_filtre = df_filtre[
+        df_filtre["Installateur"].apply(lambda x: contient_valeur(x, developpeur))
+    ]
 
 if controverse == "Oui":
     df_filtre = df_filtre[df_filtre["Controverse ?"] == 1]
@@ -166,6 +196,11 @@ def construire_popup(row):
 
 carte = folium.Map(location=[46.5, 2.5], zoom_start=6)
 
+# Les sites proches géographiquement sont regroupés dans un cluster
+# (cercle avec un chiffre) qui se déploie automatiquement au zoom,
+# plutôt que d'afficher des pins superposés et illisibles.
+cluster = MarkerCluster().add_to(carte)
+
 for _, row in df_filtre.iterrows():
 
     lat = row.get("Latitude")
@@ -183,7 +218,7 @@ for _, row in df_filtre.iterrows():
         popup=folium.Popup(popup_html, max_width=320),
         tooltip=row.get("Nom"),
         icon=folium.Icon(color=couleur)
-    ).add_to(carte)
+    ).add_to(cluster)
 
 st.subheader(" Carte interactive")
 
