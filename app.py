@@ -4,9 +4,9 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 
-# ----------------------------
+
 # CONFIGURATION
-# ----------------------------
+
 
 st.set_page_config(
     page_title="Base française des sites agrivoltaïques",
@@ -15,9 +15,9 @@ st.set_page_config(
 
 st.title(" Base française des sites agrivoltaïques")
 
-# ----------------------------
+
 # LECTURE DES DONNÉES
-# ----------------------------
+
 
 @st.cache_data
 def charger_donnees():
@@ -25,9 +25,9 @@ def charger_donnees():
 
 df = charger_donnees()
 
-# ----------------------------
+
 # STATISTIQUES
-# ----------------------------
+
 
 col1, col2, col3 = st.columns(3)
 
@@ -51,14 +51,7 @@ with col3:
 
 st.divider()
 
-# ----------------------------
-# OUTILS POUR LES CHAMPS MULTI-VALEURS
-# ----------------------------
-# Certaines cellules contiennent plusieurs valeurs séparées par une virgule
-# (ex: un site qui s'étend sur plusieurs communes : "Channay, Nicey").
-# Ces fonctions permettent de proposer chaque valeur individuellement dans
-# les filtres, et de faire matcher un site dès qu'UNE de ses valeurs
-# correspond au filtre choisi.
+
 
 def valeurs_eclatees(serie):
     """Renvoie la liste triée des valeurs uniques, en éclatant les cellules
@@ -80,9 +73,7 @@ def contient_valeur(cellule, valeur_cherchee):
     parties = [p.strip() for p in str(cellule).split(",")]
     return valeur_cherchee in parties
 
-# ----------------------------
-# FILTRES
-# ----------------------------
+
 
 st.sidebar.header("Filtres")
 
@@ -100,9 +91,9 @@ developpeur = st.sidebar.selectbox("Développeur", developpeurs)
 
 controverse = st.sidebar.selectbox("Controverse", ["Toutes", "Oui", "Non"])
 
-# ----------------------------
-# APPLICATION DES FILTRES
-# ----------------------------
+-
+#  FILTRES
+-
 
 df_filtre = df.copy()
 
@@ -133,9 +124,8 @@ if controverse == "Oui":
 elif controverse == "Non":
     df_filtre = df_filtre[df_filtre["Controverse ?"] == 0]
 
-# ----------------------------
-# OUTILS DE FORMATAGE
-# ----------------------------
+
+# FORMATAGE
 
 def fmt(valeur, unite="", decimales=None):
     """Formate une valeur pour l'affichage, gère les valeurs manquantes."""
@@ -190,15 +180,13 @@ def construire_popup(row):
     </div>
     """
 
-# ----------------------------
+
 # CARTE
-# ----------------------------
+
 
 carte = folium.Map(location=[46.5, 2.5], zoom_start=6)
 
-# Les sites proches géographiquement sont regroupés dans un cluster
-# (cercle avec un chiffre) qui se déploie automatiquement au zoom,
-# plutôt que d'afficher des pins superposés et illisibles.
+
 cluster = MarkerCluster().add_to(carte)
 
 for _, row in df_filtre.iterrows():
@@ -224,10 +212,8 @@ st.subheader(" Carte interactive")
 
 st_folium(carte, width=1400, height=700)
 
-# ----------------------------
-# TABLEAU DES DONNÉES
-# ----------------------------
 
+# TABLEAU 
 st.subheader("Données filtrées")
 
 colonnes = [
