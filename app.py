@@ -91,9 +91,9 @@ developpeur = st.sidebar.selectbox("Développeur", developpeurs)
 
 controverse = st.sidebar.selectbox("Controverse", ["Toutes", "Oui", "Non"])
 
--
+
 #  FILTRES
--
+
 
 df_filtre = df.copy()
 
